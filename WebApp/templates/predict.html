@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pneumonia Detection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: #333333;
+            text-align: center;
+        }
+        .image-preview {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .custom-file-upload {
+            border: 1px solid #ccc;
+            display: inline-block;
+            padding: 6px 12px;
+            cursor: pointer;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .predict-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0 auto; /* Center the button horizontally */
+            display: block; /* Ensure the button takes up the full width */
+        }
+        .result {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="container">
+        <h2>Pneumonia Detection Result</h2>
+        
+        <div class="image-preview" id="imagePreview">
+            <img src= "#" alt="Uploaded Image" id="uploadedImage">
+        </div>
+
+        <div class="result" id="predictionResults">
+            <p>Normal Lung Percent: <span id="normalPercent"></span></p>
+            <p>Pneumonia Lung Percent: <span id="pneumoniaPercent"></span></p>
+        </div>
+
+        <form action="/predict" method="post" enctype="multipart/form-data" id="uploadForm">
+            <label for="file-upload" class="custom-file-upload">
+                Upload Image
+            </label>
+            <input type="file" id="file-upload" name="file" accept="image/*" onchange="previewImage(event)">
+            <input type="button" value="Predict" class="predict-button" onclick="submitForm()">
+        </form>
+        <a href="/"><button class="predict-button" style="margin-top: 3px;">Home</button></a>
+    </div>
+
+    <script>
+        var imageData = null;
+
+        function previewImage(event) {
+            var reader = new FileReader();
+            reader.onload = function() {
+                var output = document.getElementById('uploadedImage');
+                output.src = reader.result;
+                imageData = reader.result; // Store image data
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        }
+
+        function submitForm() {
+            if (!imageData) {
+                alert("Please select an image.");
+                return;
+            }
+
+            var formElement = document.getElementById('uploadForm');
+            var formData = new FormData(formElement);
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/predict', true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                    var response = xhr.responseText;
+                    var predictionResults = JSON.parse(response);
+                    document.getElementById('normalPercent').innerText = predictionResults.normalPercent;
+                    document.getElementById('pneumoniaPercent').innerText = predictionResults.pneumoniaPercent;
+                    document.getElementById('predictionResults').style.display = 'block';
+                }
+            };
+            xhr.send(formData);
+        }
+    </script>
+</body>
+</html>
